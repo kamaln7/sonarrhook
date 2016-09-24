@@ -80,8 +80,13 @@ func Download(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if event.EventType != "Download" {
-		log.Print("expected EventType to be \"Download\"")
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		if event.EventType == "Test" {
+			log.Printf("received webhook test request")
+			fmt.Fprint(w, "Tested")
+		} else {
+			log.Print("expected EventType to be \"Download\"")
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		}
 
 		return
 	}
