@@ -1,0 +1,16 @@
+[Unit]
+Description=sonarrhook email notifications
+After=network-online.target
+Wants=network-online.target systemd-networkd-wait-online.service
+
+[Service]
+Restart=on-failure
+
+User=nobody
+Group=nogroup
+
+WorkingDirectory=/opt/sonarrhook
+ExecStart=/opt/sonarrhook/sonarrhook
+
+[Install]
+WantedBy=multi-user.target
