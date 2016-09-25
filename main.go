@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"sonarrhook/config"
+	"github.com/kamaln7/sonarrhook/config"
 
 	"gopkg.in/mailgun/mailgun-go.v1"
 )
