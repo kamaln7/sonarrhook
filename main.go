@@ -15,49 +15,53 @@ import (
 )
 
 var (
-	Config  config.Obj
-	Mailgun mailgun.Mailgun
+	c  config.Obj
+	mg mailgun.Mailgun
 )
 
 func main() {
 	log.Print("reading config file")
-	Config = config.Read()
+	c = config.Read()
 
-	http.HandleFunc("/download", Download)
+	http.HandleFunc("/download", download)
 
-	Mailgun = mailgun.NewMailgun(Config.Mailgun.Domain, Config.Mailgun.APIKey, Config.Mailgun.PublicAPIKey)
+	mg = mailgun.NewMailgun(c.Mailgun.Domain, c.Mailgun.APIKey, c.Mailgun.PublicAPIKey)
 
-	listenAddr := fmt.Sprintf("%s:%d", Config.HTTP.Host, Config.HTTP.Port)
-	log.Printf("listening on %s", listenAddr)
+	listenAddr := fmt.Sprintf("%s:%d", c.HTTP.Host, c.HTTP.Port)
+	log.Printf("listening on %s\n", listenAddr)
 	log.Fatal(http.ListenAndServe(listenAddr, nil))
 }
 
+// A DownloadEvent is an event sent by Sonarr that includes
+// info about the new episodes
 type DownloadEvent struct {
 	EventType string
 	Series    Series
 	Episodes  []Episode
 }
 
+// A Series is a sonarr series
 type Series struct {
-	Id          int
+	ID          int
 	Title, Path string
-	TvdbId      uint64
+	TvdbID      uint64
 }
 
+// An Episode is a file that was downloaded by Sonarr
 type Episode struct {
-	Id                                                           int
+	ID                                                           int
 	EpisodeNumber, SeasonNumber, QualityVersion                  int
 	Title, AirDate, AirDateUtc, Quality, ReleaseGroup, SceneName string
 }
 
-func Download(w http.ResponseWriter, r *http.Request) {
+func download(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 
 		return
 	}
 
-	if apiKey := r.URL.Query().Get("key"); apiKey != Config.HTTP.Key {
+	if apiKey := r.URL.Query().Get("key"); apiKey != c.HTTP.Key {
 		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 
 		return
@@ -91,26 +95,26 @@ func Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("got series [%d] %s", event.Series.Id, event.Series.Title)
+	log.Printf("got series [%d] %s", event.Series.ID, event.Series.Title)
 
 	var contactNames, recipients []string
 
-	contactNames, ok := Config.Series[strconv.Itoa(event.Series.Id)]
+	contactNames, ok := c.Series[strconv.Itoa(event.Series.ID)]
 	if !ok {
-		log.Printf("series id %d not in config", event.Series.Id)
+		log.Printf("series id %d not in config", event.Series.ID)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 
 		return
 	}
 
 	for _, name := range contactNames {
-		if _, ok := Config.Contacts[name]; !ok {
+		if _, ok := c.Contacts[name]; !ok {
 			log.Printf("contact %s not in config", name)
 
 			continue
 		}
 
-		recipients = append(recipients, Config.Contacts[name])
+		recipients = append(recipients, c.Contacts[name])
 	}
 
 	if len(recipients) == 0 {
@@ -126,8 +130,8 @@ func Download(w http.ResponseWriter, r *http.Request) {
 		message.WriteString(fmt.Sprintf("+ S%dE%d - %s\n", ep.SeasonNumber, ep.EpisodeNumber, ep.Title))
 	}
 
-	transaction := mailgun.NewMessage(Config.Mailgun.From, title, message.String(), recipients...)
-	_, ID, err := Mailgun.Send(transaction)
+	transaction := mailgun.NewMessage(c.Mailgun.From, title, message.String(), recipients...)
+	_, ID, err := mg.Send(transaction)
 
 	log.Printf("message id %s", ID)
 	if err != nil {
