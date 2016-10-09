@@ -1,4 +1,4 @@
-![sonarrhook logo](/logo.png "sonarrhook logo")
+![sonarrhook logo](/sonarrhook.png "sonarrhook logo")
 
 ## requirements
 
