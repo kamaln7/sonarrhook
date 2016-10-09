@@ -14,5 +14,4 @@ alex = "alex@emails.com"
 sam = "sam@emails.com"
 
 [series]
-2 = ["alex", "sam"]
-3 = ["sam"]
+"Gravity Falls" = ["alex", "sam"]

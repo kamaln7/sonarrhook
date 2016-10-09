@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/kamaln7/sonarrhook/config"
 
@@ -95,13 +94,13 @@ func download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("got series [%d] %s", event.Series.ID, event.Series.Title)
+	log.Printf("got series (id %d) [%s]", event.Series.ID, event.Series.Title)
 
 	var contactNames, recipients []string
 
-	contactNames, ok := c.Series[strconv.Itoa(event.Series.ID)]
+	contactNames, ok := c.Series[event.Series.Title]
 	if !ok {
-		log.Printf("series id %d not in config", event.Series.ID)
+		log.Printf("series (id %d) %s not in config", event.Series.ID, event.Series.Title)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 
 		return
