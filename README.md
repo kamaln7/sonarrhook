@@ -1,8 +1,10 @@
 ![sonarrhook logo](/sonarrhook.png "sonarrhook logo")
 
+sonarrhook adds flexible [Mailgun](https://mailgun.com/)-powered emails to Sonarr.
+
 ## requirements
 
-- a [mailgun](https://mailgun.com/) account
+- a [mailgun](https://mailgun.com/) account with an active domain
 
 ## instructions
 
